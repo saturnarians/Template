@@ -1,5 +1,13 @@
-import jwt from 'jsonwebtoken';
+import { SignJWT, jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
+
+// --- IMPORTANT: Handle your secret key for jose ---
+// jose requires the secret to be a Uint8Array.
+// process.env.JWT_SECRET comes as a string.
+// Ensure process.env.JWT_SECRET is actually set in your .env file
+const JWT_SECRET_KEY = process.env.JWT_SECRET || 'your_super_long_and_secret_key_fallback_please_change_me'; // Use a strong fallback for development
+const encoder = new TextEncoder();
+const ENCODED_JWT_SECRET = encoder.encode(JWT_SECRET_KEY);
 
 export const hashPassword = async (password) => {
     const salt = await bcrypt.genSalt(10);
@@ -10,23 +18,47 @@ export const comparePasswords = async (password, hashedPassword) => {
     return bcrypt.compare(password, hashedPassword);
 };
 
-export const generateToken = (user) => {
-    return jwt.sign(
-        {
+// Refactored generateToken using jose
+export const generateToken = async (user) => { // Make this async
+    try {
+        const token = await new SignJWT({
             id: user._id,
             email: user.email,
             role: user.role
-        },
-        process.env.JWT_SECRET || 'your-secret-key',
-        { expiresIn: '1d' }
-    );
+        })
+        .setProtectedHeader({ alg: 'HS256' }) // Use HS256 algorithm
+        .setIssuedAt()
+        .setExpirationTime('1d') // '1d' for 1 day
+        .sign(ENCODED_JWT_SECRET); // Use the encoded secret
+        return token;
+    } catch (error) {
+        console.error("Error generating token:", error);
+        throw new Error("Failed to generate token.");
+    }
 };
 
-export const verifyToken = (token) => {
+// Refactored verifyToken using jose
+export const verifyToken = async (token) => { // Make this async
     try {
-        return jwt.verify(token, process.env.JWT_SECRET);
+        const { payload } = await jwtVerify(
+            token,
+            ENCODED_JWT_SECRET, // Use the encoded secret
+            {
+                algorithms: ['HS256'], // Specify the algorithm used for signing
+            }
+        );
+        return payload; // Returns the decoded payload
     } catch (error) {
-        return null;
+        // Log the actual error for debugging
+        console.error("Token verification failed:", error);
+        // Handle specific JOSE errors
+        if (error.code === 'ERR_JWT_EXPIRED') {
+            throw new Error('Token expired');
+        }
+        if (error.code === 'ERR_JWS_INVALID') {
+            throw new Error('Invalid token signature');
+        }
+        throw new Error('Invalid token'); // Generic error for other issues
     }
 };
 

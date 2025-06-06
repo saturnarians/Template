@@ -58,7 +58,7 @@ export async function POST(req) {
 
         const token = generateToken(user);
 
-        return NextResponse.json({
+        const response = NextResponse.json({
             token,
             user: {
                 id: user._id,
@@ -67,7 +67,19 @@ export async function POST(req) {
                 role: user.role,
                 department: user.department
             }
-        });    } catch (error) {
+        });  
+    
+          response.cookies.set('auth-token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 60 * 60 * 24 * 7, // 7 days
+            path: '/',
+        });
+
+        return response;
+    
+    
+    } catch (error) {
         console.error('Login error:', error);
         console.error('Stack trace:', error.stack);
         

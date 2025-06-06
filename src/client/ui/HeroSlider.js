@@ -6,7 +6,8 @@ import { Navigation, Pagination, Autoplay } from 'swiper';
 
 export default function HeroSlider({ slides }) {
     return (
-        <div className="relative w-full h-[600px]">            <Swiper
+        <div className="relative w-full h-[600px]">            
+        <Swiper
                 modules={[Navigation, Pagination, Autoplay]}
                 spaceBetween={0}
                 slidesPerView={1}

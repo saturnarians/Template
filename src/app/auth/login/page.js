@@ -40,10 +40,26 @@ export default function LoginPage() {
             localStorage.setItem('auth-token', data.token);
             
             // Redirect based on role
-            if (data.user.role === 'superadmin' || data.user.role === 'admin') {
-                router.push('/admin/users');
+            // if (data.user.role === 'superadmin' || data.user.role === 'admin') {
+            //     router.push('/admin/users');
+            // } else {
+            //     router.push('/admin/users');
+            // }
+            console.log('Redirecting role:', data.role);
+
+            const role = data.role?.toLowerCase();
+            // const role = data.user.role?.toLowerCase();
+
+
+            if (role === 'superadmin') {
+              console.log('Redirecting to /admin/dashboard');
+              router.push('/admin/dashboard');
+            } else if (role === 'admin') {
+              console.log('Redirecting to /admin/users');
+              router.push('/admin/users');
             } else {
-                router.push('/');
+                console.log('Redirecting to /dashboard');
+                router.push('/dashboard');
             }
             router.refresh();
         } catch (err) {

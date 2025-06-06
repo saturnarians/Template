@@ -1,9 +1,10 @@
 import HeroSlider from '@/client/ui/HeroSlider';
 
-export default function Home() {
+export default function Home({ slides }) {
     return (
+        <>
         <main>
-            <HeroSlider />
+            <HeroSlider slides={slides}/>
             <section className="py-16 px-4">
                 <div className="max-w-7xl mx-auto">
                     <h2 className="text-3xl font-bold text-center mb-8">Welcome to Our Church</h2>
@@ -24,5 +25,6 @@ export default function Home() {
                 </div>
             </section>
         </main>
+          </>
     );
 }

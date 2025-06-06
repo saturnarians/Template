@@ -9,6 +9,16 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata = {
   title: 'Church Website',
   description: 'A modern church website built with Next.js',
+  icons: {
+    icon: [
+      { url: '/favicon.ico' }, // Points to app/favicon.ico or public/favicon.ico
+      { url: '/icon.png', type: 'image/png' },
+      { url: '/Logo.svg', type: 'image/svg+xml' },
+      { url: '/icon_light.png', media: '(prefers-color-scheme: light)' },
+      { url: '/icon_dark.png', media: '(prefers-color-scheme: dark)' },
+    ],
+    apple: '/apple-icon.png', // Points to app/apple-icon.png or public/apple-icon.png
+  },
 };
 
 export default function RootLayout({ children }) {
