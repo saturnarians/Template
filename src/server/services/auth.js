@@ -37,17 +37,18 @@ export const generateToken = async (user) => { // Make this async
     }
 };
 
+
+
 // Refactored verifyToken using jose
 export const verifyToken = async (token) => { // Make this async
+    console.log('🔑 Token received for verification:', token); // add this line
+
     try {
-        const { payload } = await jwtVerify(
-            token,
-            ENCODED_JWT_SECRET, // Use the encoded secret
-            {
-                algorithms: ['HS256'], // Specify the algorithm used for signing
-            }
-        );
-        return payload; // Returns the decoded payload
+        console.log("Token to verify:", token);
+        const { payload } = await jwtVerify(token, ENCODED_JWT_SECRET, {
+            algorithms: ['HS256'],
+        });
+        return payload;
     } catch (error) {
         // Log the actual error for debugging
         console.error("Token verification failed:", error);

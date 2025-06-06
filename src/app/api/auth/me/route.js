@@ -1,38 +1,44 @@
-import { NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth'; // Adjust path based on where your auth file is
+// place in /api/auth/me/route.js
 
-// Simulated user DB for demo (replace with actual DB fetch)
-const users = [
-  { _id: '1', name: 'John Doe', email: 'john@example.com', role: 'user' },
-  { _id: '2', name: 'Admin Adminson', email: 'admin@example.com', role: 'admin' },
-  { _id: '3', name: 'Super Admin', email: 'super@example.com', role: 'superadmin' },
-];
+
+import { NextResponse } from 'next/server';
+import { verifyToken } from '@/server/services/auth';
+import connectDB from '@/server/utils/db';
+import User from '@/server/models/User';
 
 export async function GET(req) {
-  const authHeader = req.headers.get('authorization');
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return NextResponse.json({ error: 'Unauthorized: No token provided' }, { status: 401 });
-  }
-
-  const token = authHeader.split(' ')[1];
-
   try {
-    const payload = await verifyToken(token); // uses your jose setup
+    // Connect to the database
+    await connectDB();
 
-    const user = users.find((u) => u.email === payload.email);
+    // Get the token from cookies
+    const token = req.cookies.get('auth-token')?.value;
+
+    if (!token) {
+      return NextResponse.json({ error: 'Token not found' }, { status: 401 });
+    }
+
+    // Verify the JWT token
+    const payload = await verifyToken(token);
+
+    // Find the user in the database
+    const user = await User.findOne({ email: payload.email });
+
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // Return user data
     return NextResponse.json({
-      _id: user._id,
-      email: user.email,
+      id: user._id,
       name: user.name,
+      email: user.email,
       role: user.role,
+      department: user.department,
     });
+
   } catch (error) {
-    console.error('Verification failed:', error.message);
-    return NextResponse.json({ error: error.message }, { status: 401 });
+    console.error('Verification failed:', error);
+    return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
   }
 }

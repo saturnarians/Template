@@ -13,7 +13,7 @@ export default function LoginPage() {
         e.preventDefault();
         setError('');
 
-        try {            console.log('Sending login request...');
+        try {
             const res = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: {
@@ -22,47 +22,33 @@ export default function LoginPage() {
                 body: JSON.stringify({ email, password }),
             });
 
-            let data;
-            try {
-                data = await res.json();
-            } catch (parseError) {
-                console.error('Error parsing response:', parseError);
-                throw new Error('Server response was not valid JSON');
-            }
+            const data = await res.json();
 
             if (!res.ok) {
-                console.error('Login failed:', data);
-                throw new Error(data.error || 'An error occurred');
+                throw new Error(data?.error || 'Login failed');
             }
 
-            console.log('Login successful:', data);
-            // Store token in localStorage
-            localStorage.setItem('auth-token', data.token);
-            
-            // Redirect based on role
-            // if (data.user.role === 'superadmin' || data.user.role === 'admin') {
-            //     router.push('/admin/users');
-            // } else {
-            //     router.push('/admin/users');
-            // }
-            console.log('Redirecting role:', data.role);
+            // Optional: store token locally for client-side needs
+            if (data.token) {
+                localStorage.setItem('auth-token', data.token);
+            }
 
-            const role = data.role?.toLowerCase();
-            // const role = data.user.role?.toLowerCase();
+            // Read user role safely
+            const role = data?.user?.role?.toLowerCase();
 
+            console.log('User role:', role);
 
             if (role === 'superadmin') {
-              console.log('Redirecting to /admin/dashboard');
-              router.push('/admin/dashboard');
+                router.push('/admin/superadmin');
             } else if (role === 'admin') {
-              console.log('Redirecting to /admin/users');
-              router.push('/admin/users');
+                router.push('/admin/subadmin');
             } else {
-                console.log('Redirecting to /dashboard');
-                router.push('/dashboard');
+                router.push('/admin/users');
             }
-            router.refresh();
+
+            router.refresh(); // optional - for cache updates
         } catch (err) {
+            console.error('Login error:', err);
             setError(err.message);
         }
     };
